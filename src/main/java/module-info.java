@@ -5,7 +5,6 @@ module com.example.nypkentseldonusumtakip {
 
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
-    requires eu.hansolo.tilesfx;
 
     opens com.example.nypkentseldonusumtakip to javafx.fxml;
     exports com.example.nypkentseldonusumtakip;
