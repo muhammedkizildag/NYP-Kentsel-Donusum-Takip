@@ -17,7 +17,10 @@ import javafx.collections.ObservableList;
 
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -159,24 +162,37 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Binalar tablosunu ayarla
+        // Tabloları ayarla
         setupBuildingsTable();
-        
-        // Mülk sahipleri tablosunu ayarla
         setupOwnersTable();
-        
-        // Müteahhitler tablosunu ayarla
         setupContractorsTable();
-        
-        // ComboBox'ları ayarla
         setupComboBoxes();
         
-        // Test verileri ekle
-        loadTestData();
+        // Veritabanından verileri yükle
+        loadDataFromDatabase();
+    }
+    
+    private void loadDataFromDatabase() {
+        // Önce sahipleri yükle
+        List<PropertyOwner> owners = db.getAllOwners();
+        ownerList.addAll(owners);
+        
+        // Müteahhitleri yükle
+        List<Contractor> contractors = db.getAllContractors();
+        contractorList.addAll(contractors);
+        
+        // Sahip map'i oluştur (bina yüklemek için)
+        Map<Integer, PropertyOwner> ownerMap = new HashMap<>();
+        for (PropertyOwner owner : owners) {
+            ownerMap.put(owner.getId(), owner);
+        }
+        
+        // Binaları yükle
+        List<Building> buildings = db.getAllBuildings(ownerMap);
+        buildingList.addAll(buildings);
     }
     
     private void setupBuildingsTable() {
-        // Bina türü
         colType.setCellValueFactory(cellData -> {
             Building b = cellData.getValue();
             String type = (b instanceof ApartmentBuilding) ? "Apartman" : "Müstakil";
@@ -185,14 +201,12 @@ public class Controller implements Initializable {
         
         colAddress.setCellValueFactory(new PropertyValueFactory<>("address"));
         
-        // Sahibi
         colOwner.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().getOwner().getFullName())
         );
         
         colStatus.setCellValueFactory(new PropertyValueFactory<>("riskStatus"));
         
-        // Maliyet (formatlanmış)
         colCost.setCellValueFactory(cellData -> {
             double cost = cellData.getValue().calculateCost();
             NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("tr", "TR"));
@@ -201,7 +215,6 @@ public class Controller implements Initializable {
         
         buildingsTable.setItems(buildingList);
         
-        // Tablo seçimi değiştiğinde formu doldur
         buildingsTable.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
                 if (newValue != null) {
@@ -216,14 +229,12 @@ public class Controller implements Initializable {
         colOwnerLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         colOwnerPhone.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
         
-        // Bina sayısı için özel CellValueFactory
         colOwnerBuildingCount.setCellValueFactory(cellData -> 
             new SimpleIntegerProperty(cellData.getValue().getOwnedBuildings().size()).asObject()
         );
         
         ownersTable.setItems(ownerList);
         
-        // Tablo seçimi değiştiğinde formu doldur
         ownersTable.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
                 if (newValue != null) {
@@ -241,7 +252,6 @@ public class Controller implements Initializable {
         
         contractorsTable.setItems(contractorList);
         
-        // Tablo seçimi değiştiğinde formu doldur
         contractorsTable.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> {
                 if (newValue != null) {
@@ -252,15 +262,12 @@ public class Controller implements Initializable {
     }
     
     private void setupComboBoxes() {
-        // Bina türleri
         cmbBuildingType.setItems(FXCollections.observableArrayList("Apartman", "Müstakil"));
         
-        // Bina türü değiştiğinde formu güncelle
         cmbBuildingType.setOnAction(e -> {
             String selected = cmbBuildingType.getValue();
             boolean isApartment = "Apartman".equals(selected);
             
-            // Apartman alanları
             lblFloors.setVisible(isApartment);
             lblFloors.setManaged(isApartment);
             txtFloors.setVisible(isApartment);
@@ -270,46 +277,14 @@ public class Controller implements Initializable {
             txtUnits.setVisible(isApartment);
             txtUnits.setManaged(isApartment);
             
-            // Müstakil alanları
             lblGardenArea.setVisible(!isApartment && selected != null);
             lblGardenArea.setManaged(!isApartment && selected != null);
             txtGardenArea.setVisible(!isApartment && selected != null);
             txtGardenArea.setManaged(!isApartment && selected != null);
         });
         
-        // Risk durumları
         cmbRiskStatus.setItems(FXCollections.observableArrayList("RISKLI", "GUVENLI", "BELIRSIZ"));
-        
-        // Mülk sahipleri
         cmbBuildingOwner.setItems(ownerList);
-    }
-    
-    private void loadTestData() {
-        // Test mülk sahipleri
-        PropertyOwner owner1 = new PropertyOwner("Ahmet", "Yılmaz", "05551234567");
-        PropertyOwner owner2 = new PropertyOwner("Fatma", "Demir", "05559876543");
-        PropertyOwner owner3 = new PropertyOwner("Mehmet", "Kaya", "05553334455");
-        
-        ownerList.addAll(owner1, owner2, owner3);
-        
-        // Test binaları
-        ApartmentBuilding b1 = new ApartmentBuilding("Atatürk Cad. No:15", owner1, 5, 10);
-        b1.setRiskStatus("RISKLI");
-        
-        DetachedBuilding b2 = new DetachedBuilding("Bahçe Sok. No:3", owner1, 150.0);
-        b2.setRiskStatus("GUVENLI");
-        
-        ApartmentBuilding b3 = new ApartmentBuilding("Cumhuriyet Mah. No:42", owner2, 8, 16);
-        b3.setRiskStatus("BELIRSIZ");
-        
-        buildingList.addAll(b1, b2, b3);
-        
-        // Test müteahhitler
-        Contractor c1 = new Contractor("Ali", "Öztürk", "05321112233", "Öztürk İnşaat A.Ş.");
-        Contractor c2 = new Contractor("Veli", "Şahin", "05324445566", "Şahin Yapı Ltd.");
-        Contractor c3 = new Contractor("Ayşe", "Çelik", "05327778899", "Çelik Müteahhitlik");
-        
-        contractorList.addAll(c1, c2, c3);
     }
     
     // ========== BİNA CRUD İŞLEMLERİ ==========
@@ -321,7 +296,6 @@ public class Controller implements Initializable {
         PropertyOwner owner = cmbBuildingOwner.getValue();
         String riskStatus = cmbRiskStatus.getValue();
         
-        // Validasyon
         if (type == null || address.isEmpty() || owner == null) {
             showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen tür, adres ve sahip alanlarını doldurunuz!");
             return;
@@ -330,7 +304,6 @@ public class Controller implements Initializable {
         Building newBuilding;
         
         if ("Apartman".equals(type)) {
-            // Apartman validasyonu
             if (txtFloors.getText().trim().isEmpty() || txtUnits.getText().trim().isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen kat ve daire sayısını giriniz!");
                 return;
@@ -345,7 +318,6 @@ public class Controller implements Initializable {
                 return;
             }
         } else {
-            // Müstakil validasyonu
             if (txtGardenArea.getText().trim().isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen bahçe alanını giriniz!");
                 return;
@@ -360,21 +332,20 @@ public class Controller implements Initializable {
             }
         }
         
-        // Risk durumunu ayarla
         if (riskStatus != null) {
             newBuilding.setRiskStatus(riskStatus);
         }
         
-        // Listeye ekle
-        buildingList.add(newBuilding);
-        
-        // Mülk sahibi tablosunu yenile (bina sayısı güncellenir)
-        ownersTable.refresh();
-        
-        // Formu temizle
-        clearBuildingForm();
-        
-        showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Bina eklendi!");
+        // Veritabanına kaydet
+        int id = db.insertBuilding(newBuilding);
+        if (id > 0) {
+            buildingList.add(newBuilding);
+            ownersTable.refresh();
+            clearBuildingForm();
+            showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Bina eklendi!");
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Hata", "Bina eklenirken hata oluştu!");
+        }
     }
     
     @FXML
@@ -395,14 +366,12 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Ortak alanları güncelle
         selected.setAddress(address);
         selected.setOwner(owner);
         if (riskStatus != null) {
             selected.setRiskStatus(riskStatus);
         }
         
-        // Türe özel alanları güncelle
         try {
             if (selected instanceof ApartmentBuilding) {
                 ApartmentBuilding apt = (ApartmentBuilding) selected;
@@ -417,7 +386,9 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Tabloları yenile
+        // Veritabanında güncelle
+        db.updateBuilding(selected);
+        
         buildingsTable.refresh();
         ownersTable.refresh();
         
@@ -433,16 +404,12 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Sahibinin listesinden de kaldır
+        // Veritabanından sil
+        db.deleteBuilding(selected.getId());
+        
         selected.getOwner().getOwnedBuildings().remove(selected);
-        
-        // Ana listeden kaldır
         buildingList.remove(selected);
-        
-        // Tabloları yenile
         ownersTable.refresh();
-        
-        // Formu temizle
         clearBuildingForm();
         
         showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Bina silindi!");
@@ -478,7 +445,6 @@ public class Controller implements Initializable {
         txtGardenArea.clear();
         buildingsTable.getSelectionModel().clearSelection();
         
-        // Alanları gizle
         lblFloors.setVisible(false);
         lblFloors.setManaged(false);
         txtFloors.setVisible(false);
@@ -501,20 +467,22 @@ public class Controller implements Initializable {
         String lastName = txtOwnerLastName.getText().trim();
         String phone = txtOwnerPhone.getText().trim();
         
-        // Validasyon
         if (firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen tüm alanları doldurunuz!");
             return;
         }
         
-        // Yeni mülk sahibi oluştur ve listeye ekle
         PropertyOwner newOwner = new PropertyOwner(firstName, lastName, phone);
-        ownerList.add(newOwner);
         
-        // Formu temizle
-        clearOwnerForm();
-        
-        showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Mülk sahibi eklendi!");
+        // Veritabanına kaydet
+        int id = db.insertOwner(newOwner);
+        if (id > 0) {
+            ownerList.add(newOwner);
+            clearOwnerForm();
+            showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Mülk sahibi eklendi!");
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Hata", "Mülk sahibi eklenirken hata oluştu!");
+        }
     }
     
     @FXML
@@ -535,12 +503,13 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Seçili kişiyi güncelle
         selected.setFirstName(firstName);
         selected.setLastName(lastName);
         selected.setPhoneNumber(phone);
         
-        // Tabloları yenile
+        // Veritabanında güncelle
+        db.updateOwner(selected);
+        
         ownersTable.refresh();
         buildingsTable.refresh();
         
@@ -556,13 +525,11 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Bu kişiye ait binaları da sil
+        // Veritabanından sil (binalar da silinir)
+        db.deleteOwner(selected.getId());
+        
         buildingList.removeAll(selected.getOwnedBuildings());
-        
-        // Listeden kaldır
         ownerList.remove(selected);
-        
-        // Formu temizle
         clearOwnerForm();
         
         showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Mülk sahibi ve binaları silindi!");
@@ -577,20 +544,22 @@ public class Controller implements Initializable {
         String phone = txtContractorPhone.getText().trim();
         String company = txtContractorCompany.getText().trim();
         
-        // Validasyon
         if (firstName.isEmpty() || lastName.isEmpty() || phone.isEmpty() || company.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen tüm alanları doldurunuz!");
             return;
         }
         
-        // Yeni müteahhit oluştur ve listeye ekle
         Contractor newContractor = new Contractor(firstName, lastName, phone, company);
-        contractorList.add(newContractor);
         
-        // Formu temizle
-        clearContractorForm();
-        
-        showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Müteahhit eklendi!");
+        // Veritabanına kaydet
+        int id = db.insertContractor(newContractor);
+        if (id > 0) {
+            contractorList.add(newContractor);
+            clearContractorForm();
+            showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Müteahhit eklendi!");
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Hata", "Müteahhit eklenirken hata oluştu!");
+        }
     }
     
     @FXML
@@ -612,13 +581,14 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Seçili müteahhiti güncelle
         selected.setFirstName(firstName);
         selected.setLastName(lastName);
         selected.setPhoneNumber(phone);
         selected.setCompanyName(company);
         
-        // Tabloyu yenile
+        // Veritabanında güncelle
+        db.updateContractor(selected);
+        
         contractorsTable.refresh();
         
         showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Müteahhit güncellendi!");
@@ -633,10 +603,10 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Listeden kaldır
-        contractorList.remove(selected);
+        // Veritabanından sil
+        db.deleteContractor(selected.getId());
         
-        // Formu temizle
+        contractorList.remove(selected);
         clearContractorForm();
         
         showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Müteahhit silindi!");
