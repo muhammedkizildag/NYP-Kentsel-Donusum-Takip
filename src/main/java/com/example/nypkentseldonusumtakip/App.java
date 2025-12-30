@@ -15,8 +15,8 @@ public class App extends Application {
     public void start(Stage stage) throws IOException {
         Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("a.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
-        stage.setTitle("Hello!");
+        Scene scene = new Scene(fxmlLoader.load(), 900, 600);
+        stage.setTitle("Kentsel Dönüşüm Takip Sistemi");
         stage.setScene(scene);
         stage.show();
     }

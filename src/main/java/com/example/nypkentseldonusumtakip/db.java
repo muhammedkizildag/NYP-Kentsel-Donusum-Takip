@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,11 +51,13 @@ public class db {
                 building_type TEXT NOT NULL,
                 address TEXT NOT NULL,
                 owner_id INTEGER NOT NULL,
+                contractor_id INTEGER,
                 risk_status TEXT,
                 floor_count INTEGER,
                 total_units INTEGER,
                 garden_area REAL,
-                FOREIGN KEY (owner_id) REFERENCES owners(id)
+                FOREIGN KEY (owner_id) REFERENCES owners(id),
+                FOREIGN KEY (contractor_id) REFERENCES contractors(id)
             );
         """;
 
@@ -64,6 +65,14 @@ public class db {
             stmt.execute(sqlOwners);
             stmt.execute(sqlContractors);
             stmt.execute(sqlBuildings);
+            
+            // Mevcut tabloya contractor_id sütunu ekle (varsa hata vermez)
+            try {
+                stmt.execute("ALTER TABLE buildings ADD COLUMN contractor_id INTEGER REFERENCES contractors(id);");
+            } catch (SQLException e) {
+                // Sütun zaten varsa hata verir, görmezden gel
+            }
+            
             System.out.println("Tablolar oluşturuldu.");
         } catch (SQLException e) {
             System.out.println("Tablo oluşturma hatası: " + e.getMessage());
@@ -112,7 +121,6 @@ public class db {
     }
 
     public static void deleteOwner(int id) {
-        // Önce bu sahibe ait binaları sil
         String sqlBuildings = "DELETE FROM buildings WHERE owner_id = ?";
         String sqlOwner = "DELETE FROM owners WHERE id = ?";
         
@@ -196,13 +204,18 @@ public class db {
     }
 
     public static void deleteContractor(int id) {
+        // Önce bu müteahhite atanmış binaların contractor_id'sini null yap
+        String sqlUpdateBuildings = "UPDATE buildings SET contractor_id = NULL WHERE contractor_id = ?";
         String sql = "DELETE FROM contractors WHERE id = ?";
         
-        try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = connect()) {
+            PreparedStatement pstmt1 = conn.prepareStatement(sqlUpdateBuildings);
+            pstmt1.setInt(1, id);
+            pstmt1.executeUpdate();
             
-            pstmt.setInt(1, id);
-            pstmt.executeUpdate();
+            PreparedStatement pstmt2 = conn.prepareStatement(sql);
+            pstmt2.setInt(1, id);
+            pstmt2.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Contractor silme hatası: " + e.getMessage());
         }
@@ -235,7 +248,7 @@ public class db {
     // ========== BİNA İŞLEMLERİ ==========
 
     public static int insertBuilding(Building building) {
-        String sql = "INSERT INTO buildings(building_type, address, owner_id, risk_status, floor_count, total_units, garden_area) VALUES(?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO buildings(building_type, address, owner_id, contractor_id, risk_status, floor_count, total_units, garden_area) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -244,18 +257,26 @@ public class db {
             pstmt.setString(1, type);
             pstmt.setString(2, building.getAddress());
             pstmt.setInt(3, building.getOwner().getId());
-            pstmt.setString(4, building.getRiskStatus());
+            
+            // Müteahhit atanmışsa
+            if (building.getContractor() != null) {
+                pstmt.setInt(4, building.getContractor().getId());
+            } else {
+                pstmt.setNull(4, java.sql.Types.INTEGER);
+            }
+            
+            pstmt.setString(5, building.getRiskStatus());
             
             if (building instanceof ApartmentBuilding) {
                 ApartmentBuilding apt = (ApartmentBuilding) building;
-                pstmt.setInt(5, apt.getFloorCount());
-                pstmt.setInt(6, apt.getTotalUnits());
-                pstmt.setNull(7, java.sql.Types.REAL);
+                pstmt.setInt(6, apt.getFloorCount());
+                pstmt.setInt(7, apt.getTotalUnits());
+                pstmt.setNull(8, java.sql.Types.REAL);
             } else {
                 DetachedBuilding det = (DetachedBuilding) building;
-                pstmt.setNull(5, java.sql.Types.INTEGER);
                 pstmt.setNull(6, java.sql.Types.INTEGER);
-                pstmt.setDouble(7, det.getGardenArea());
+                pstmt.setNull(7, java.sql.Types.INTEGER);
+                pstmt.setDouble(8, det.getGardenArea());
             }
             
             pstmt.executeUpdate();
@@ -273,28 +294,36 @@ public class db {
     }
 
     public static void updateBuilding(Building building) {
-        String sql = "UPDATE buildings SET address = ?, owner_id = ?, risk_status = ?, floor_count = ?, total_units = ?, garden_area = ? WHERE id = ?";
+        String sql = "UPDATE buildings SET address = ?, owner_id = ?, contractor_id = ?, risk_status = ?, floor_count = ?, total_units = ?, garden_area = ? WHERE id = ?";
         
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, building.getAddress());
             pstmt.setInt(2, building.getOwner().getId());
-            pstmt.setString(3, building.getRiskStatus());
+            
+            // Müteahhit atanmışsa
+            if (building.getContractor() != null) {
+                pstmt.setInt(3, building.getContractor().getId());
+            } else {
+                pstmt.setNull(3, java.sql.Types.INTEGER);
+            }
+            
+            pstmt.setString(4, building.getRiskStatus());
             
             if (building instanceof ApartmentBuilding) {
                 ApartmentBuilding apt = (ApartmentBuilding) building;
-                pstmt.setInt(4, apt.getFloorCount());
-                pstmt.setInt(5, apt.getTotalUnits());
-                pstmt.setNull(6, java.sql.Types.REAL);
+                pstmt.setInt(5, apt.getFloorCount());
+                pstmt.setInt(6, apt.getTotalUnits());
+                pstmt.setNull(7, java.sql.Types.REAL);
             } else {
                 DetachedBuilding det = (DetachedBuilding) building;
-                pstmt.setNull(4, java.sql.Types.INTEGER);
                 pstmt.setNull(5, java.sql.Types.INTEGER);
-                pstmt.setDouble(6, det.getGardenArea());
+                pstmt.setNull(6, java.sql.Types.INTEGER);
+                pstmt.setDouble(7, det.getGardenArea());
             }
             
-            pstmt.setInt(7, building.getId());
+            pstmt.setInt(8, building.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Building güncelleme hatası: " + e.getMessage());
@@ -314,7 +343,7 @@ public class db {
         }
     }
 
-    public static List<Building> getAllBuildings(Map<Integer, PropertyOwner> ownerMap) {
+    public static List<Building> getAllBuildings(Map<Integer, PropertyOwner> ownerMap, Map<Integer, Contractor> contractorMap) {
         List<Building> buildings = new ArrayList<>();
         String sql = "SELECT * FROM buildings";
         
@@ -348,6 +377,14 @@ public class db {
                 
                 building.setId(rs.getInt("id"));
                 building.setRiskStatus(rs.getString("risk_status"));
+                
+                // Müteahhit ataması
+                int contractorId = rs.getInt("contractor_id");
+                if (!rs.wasNull() && contractorMap != null) {
+                    Contractor contractor = contractorMap.get(contractorId);
+                    building.setContractor(contractor);
+                }
+                
                 buildings.add(building);
             }
         } catch (SQLException e) {

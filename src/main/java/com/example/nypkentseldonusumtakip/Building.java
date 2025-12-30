@@ -7,6 +7,7 @@ public abstract class Building {
     private int id;
     private String address;
     private PropertyOwner owner;
+    private Contractor contractor; // Atanan müteahhit
     private String riskStatus; // Örn: "RISKLI", "GUVENLI", "BELIRSIZ"
 
     // Constructor
@@ -14,6 +15,7 @@ public abstract class Building {
         this.address = address;
         this.owner = owner;
         this.riskStatus = "BELIRSIZ";
+        owner.addBuilding(this);
     }
 
     // --- SOYUT METOT ---
@@ -40,12 +42,30 @@ public abstract class Building {
     public PropertyOwner getOwner() { return owner; }
     public void setOwner(PropertyOwner owner) { this.owner = owner; }
 
+    public Contractor getContractor() {
+        return contractor;
+    }
+
+    public void setContractor(Contractor contractor) {
+        this.contractor = contractor;
+    }
+
     public String getRiskStatus() {
         return riskStatus;
     }
 
     public void setRiskStatus(String riskStatus) {
         this.riskStatus = riskStatus;
+    }
+    
+    // Müteahhit atanmış mı?
+    public boolean hasContractor() {
+        return contractor != null;
+    }
+    
+    // Müteahhit adını getir
+    public String getContractorName() {
+        return contractor != null ? contractor.getCompanyName() : "Atanmamış";
     }
 
     // Listede güzel görünsün diye toString metodunu düzenleyelim

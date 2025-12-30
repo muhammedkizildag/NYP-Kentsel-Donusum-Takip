@@ -39,6 +39,9 @@ public class Controller implements Initializable {
     private TableColumn<Building, String> colOwner;
     
     @FXML
+    private TableColumn<Building, String> colContractor;
+    
+    @FXML
     private TableColumn<Building, String> colStatus;
     
     @FXML
@@ -52,6 +55,9 @@ public class Controller implements Initializable {
     
     @FXML
     private ComboBox<PropertyOwner> cmbBuildingOwner;
+    
+    @FXML
+    private ComboBox<Contractor> cmbBuildingContractor;
     
     @FXML
     private ComboBox<String> cmbRiskStatus;
@@ -82,6 +88,9 @@ public class Controller implements Initializable {
     
     @FXML
     private Button btnDeleteBuilding;
+    
+    @FXML
+    private Button btnClearBuilding;
     
     private ObservableList<Building> buildingList = FXCollections.observableArrayList();
 
@@ -162,13 +171,10 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Tabloları ayarla
         setupBuildingsTable();
         setupOwnersTable();
         setupContractorsTable();
         setupComboBoxes();
-        
-        // Veritabanından verileri yükle
         loadDataFromDatabase();
     }
     
@@ -181,14 +187,20 @@ public class Controller implements Initializable {
         List<Contractor> contractors = db.getAllContractors();
         contractorList.addAll(contractors);
         
-        // Sahip map'i oluştur (bina yüklemek için)
+        // Sahip map'i oluştur
         Map<Integer, PropertyOwner> ownerMap = new HashMap<>();
         for (PropertyOwner owner : owners) {
             ownerMap.put(owner.getId(), owner);
         }
         
+        // Müteahhit map'i oluştur
+        Map<Integer, Contractor> contractorMap = new HashMap<>();
+        for (Contractor contractor : contractors) {
+            contractorMap.put(contractor.getId(), contractor);
+        }
+        
         // Binaları yükle
-        List<Building> buildings = db.getAllBuildings(ownerMap);
+        List<Building> buildings = db.getAllBuildings(ownerMap, contractorMap);
         buildingList.addAll(buildings);
     }
     
@@ -203,6 +215,11 @@ public class Controller implements Initializable {
         
         colOwner.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().getOwner().getFullName())
+        );
+        
+        // Müteahhit sütunu
+        colContractor.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().getContractorName())
         );
         
         colStatus.setCellValueFactory(new PropertyValueFactory<>("riskStatus"));
@@ -285,6 +302,7 @@ public class Controller implements Initializable {
         
         cmbRiskStatus.setItems(FXCollections.observableArrayList("RISKLI", "GUVENLI", "BELIRSIZ"));
         cmbBuildingOwner.setItems(ownerList);
+        cmbBuildingContractor.setItems(contractorList);
     }
     
     // ========== BİNA CRUD İŞLEMLERİ ==========
@@ -294,6 +312,7 @@ public class Controller implements Initializable {
         String type = cmbBuildingType.getValue();
         String address = txtBuildingAddress.getText().trim();
         PropertyOwner owner = cmbBuildingOwner.getValue();
+        Contractor contractor = cmbBuildingContractor.getValue();
         String riskStatus = cmbRiskStatus.getValue();
         
         if (type == null || address.isEmpty() || owner == null) {
@@ -336,7 +355,11 @@ public class Controller implements Initializable {
             newBuilding.setRiskStatus(riskStatus);
         }
         
-        // Veritabanına kaydet
+        // Müteahhit ata (opsiyonel)
+        if (contractor != null) {
+            newBuilding.setContractor(contractor);
+        }
+        
         int id = db.insertBuilding(newBuilding);
         if (id > 0) {
             buildingList.add(newBuilding);
@@ -359,6 +382,7 @@ public class Controller implements Initializable {
         
         String address = txtBuildingAddress.getText().trim();
         PropertyOwner owner = cmbBuildingOwner.getValue();
+        Contractor contractor = cmbBuildingContractor.getValue();
         String riskStatus = cmbRiskStatus.getValue();
         
         if (address.isEmpty() || owner == null) {
@@ -368,6 +392,8 @@ public class Controller implements Initializable {
         
         selected.setAddress(address);
         selected.setOwner(owner);
+        selected.setContractor(contractor); // null olabilir
+        
         if (riskStatus != null) {
             selected.setRiskStatus(riskStatus);
         }
@@ -386,7 +412,6 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Veritabanında güncelle
         db.updateBuilding(selected);
         
         buildingsTable.refresh();
@@ -404,7 +429,6 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Veritabanından sil
         db.deleteBuilding(selected.getId());
         
         selected.getOwner().getOwnedBuildings().remove(selected);
@@ -415,9 +439,15 @@ public class Controller implements Initializable {
         showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Bina silindi!");
     }
     
+    @FXML
+    private void handleClearBuildingForm() {
+        clearBuildingForm();
+    }
+    
     private void fillBuildingForm(Building building) {
         txtBuildingAddress.setText(building.getAddress());
         cmbBuildingOwner.setValue(building.getOwner());
+        cmbBuildingContractor.setValue(building.getContractor());
         cmbRiskStatus.setValue(building.getRiskStatus());
         
         if (building instanceof ApartmentBuilding) {
@@ -439,6 +469,7 @@ public class Controller implements Initializable {
         cmbBuildingType.setValue(null);
         txtBuildingAddress.clear();
         cmbBuildingOwner.setValue(null);
+        cmbBuildingContractor.setValue(null);
         cmbRiskStatus.setValue(null);
         txtFloors.clear();
         txtUnits.clear();
@@ -474,7 +505,6 @@ public class Controller implements Initializable {
         
         PropertyOwner newOwner = new PropertyOwner(firstName, lastName, phone);
         
-        // Veritabanına kaydet
         int id = db.insertOwner(newOwner);
         if (id > 0) {
             ownerList.add(newOwner);
@@ -507,7 +537,6 @@ public class Controller implements Initializable {
         selected.setLastName(lastName);
         selected.setPhoneNumber(phone);
         
-        // Veritabanında güncelle
         db.updateOwner(selected);
         
         ownersTable.refresh();
@@ -525,7 +554,6 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Veritabanından sil (binalar da silinir)
         db.deleteOwner(selected.getId());
         
         buildingList.removeAll(selected.getOwnedBuildings());
@@ -551,7 +579,6 @@ public class Controller implements Initializable {
         
         Contractor newContractor = new Contractor(firstName, lastName, phone, company);
         
-        // Veritabanına kaydet
         int id = db.insertContractor(newContractor);
         if (id > 0) {
             contractorList.add(newContractor);
@@ -586,10 +613,10 @@ public class Controller implements Initializable {
         selected.setPhoneNumber(phone);
         selected.setCompanyName(company);
         
-        // Veritabanında güncelle
         db.updateContractor(selected);
         
         contractorsTable.refresh();
+        buildingsTable.refresh();
         
         showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Müteahhit güncellendi!");
     }
@@ -603,10 +630,17 @@ public class Controller implements Initializable {
             return;
         }
         
-        // Veritabanından sil
         db.deleteContractor(selected.getId());
         
+        // Binalardaki müteahhit referanslarını temizle
+        for (Building building : buildingList) {
+            if (building.getContractor() != null && building.getContractor().getId() == selected.getId()) {
+                building.setContractor(null);
+            }
+        }
+        
         contractorList.remove(selected);
+        buildingsTable.refresh();
         clearContractorForm();
         
         showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Müteahhit silindi!");

@@ -12,60 +12,66 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.nypkentseldonusumtakip.Controller">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.nypkentseldonusumtakip.Controller">
    <children>
-      <TabPane layoutX="14.0" prefHeight="600.0" prefWidth="786.0" tabClosingPolicy="UNAVAILABLE">
+      <TabPane layoutX="14.0" prefHeight="600.0" prefWidth="886.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
           <Tab text="Binalar">
                <content>
-                  <Pane prefHeight="542.0" prefWidth="786.0">
+                  <Pane prefHeight="542.0" prefWidth="886.0">
                      <children>
                         <!-- Sol taraf: Tablo -->
-                        <TableView fx:id="buildingsTable" layoutX="14.0" layoutY="14.0" prefHeight="450.0" prefWidth="500.0">
+                        <TableView fx:id="buildingsTable" layoutX="14.0" layoutY="14.0" prefHeight="500.0" prefWidth="580.0">
                           <columns>
-                            <TableColumn fx:id="colType" prefWidth="80.0" text="Tür" />
-                            <TableColumn fx:id="colAddress" prefWidth="150.0" text="Adres" />
+                            <TableColumn fx:id="colType" prefWidth="70.0" text="Tür" />
+                            <TableColumn fx:id="colAddress" prefWidth="140.0" text="Adres" />
                             <TableColumn fx:id="colOwner" prefWidth="100.0" text="Sahibi" />
-                            <TableColumn fx:id="colStatus" prefWidth="80.0" text="Durum" />
-                            <TableColumn fx:id="colCost" prefWidth="80.0" text="Maliyet" />
+                            <TableColumn fx:id="colContractor" prefWidth="120.0" text="Müteahhit" />
+                            <TableColumn fx:id="colStatus" prefWidth="70.0" text="Durum" />
+                            <TableColumn fx:id="colCost" prefWidth="70.0" text="Maliyet" />
                           </columns>
                         </TableView>
                         
                         <!-- Sağ taraf: Form -->
-                        <VBox layoutX="530.0" layoutY="14.0" spacing="10.0" prefWidth="240.0">
+                        <VBox layoutX="610.0" layoutY="14.0" spacing="8.0" prefWidth="260.0">
                            <children>
-                              <Label text="Yeni Bina Ekle" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                              <Label text="Bina Yönetimi" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
                               
                               <Label text="Bina Türü:" />
-                              <ComboBox fx:id="cmbBuildingType" promptText="Seçiniz" prefWidth="200.0" />
+                              <ComboBox fx:id="cmbBuildingType" promptText="Seçiniz" prefWidth="240.0" />
                               
                               <Label text="Adres:" />
-                              <TextField fx:id="txtBuildingAddress" promptText="Adres giriniz" />
+                              <TextField fx:id="txtBuildingAddress" promptText="Adres giriniz" prefWidth="240.0" />
                               
                               <Label text="Mülk Sahibi:" />
-                              <ComboBox fx:id="cmbBuildingOwner" promptText="Seçiniz" prefWidth="200.0" />
+                              <ComboBox fx:id="cmbBuildingOwner" promptText="Seçiniz" prefWidth="240.0" />
+                              
+                              <Label text="Müteahhit:" />
+                              <ComboBox fx:id="cmbBuildingContractor" promptText="Seçiniz (Opsiyonel)" prefWidth="240.0" />
                               
                               <Label text="Risk Durumu:" />
-                              <ComboBox fx:id="cmbRiskStatus" promptText="Seçiniz" prefWidth="200.0" />
+                              <ComboBox fx:id="cmbRiskStatus" promptText="Seçiniz" prefWidth="240.0" />
                               
                               <!-- Apartman için -->
                               <Label fx:id="lblFloors" text="Kat Sayısı:" />
-                              <TextField fx:id="txtFloors" promptText="Kat sayısı" />
+                              <TextField fx:id="txtFloors" promptText="Kat sayısı" prefWidth="240.0" />
                               
                               <Label fx:id="lblUnits" text="Daire Sayısı:" />
-                              <TextField fx:id="txtUnits" promptText="Daire sayısı" />
+                              <TextField fx:id="txtUnits" promptText="Daire sayısı" prefWidth="240.0" />
                               
                               <!-- Müstakil için -->
                               <Label fx:id="lblGardenArea" text="Bahçe Alanı (m²):" visible="false" managed="false" />
-                              <TextField fx:id="txtGardenArea" promptText="Bahçe alanı" visible="false" managed="false" />
+                              <TextField fx:id="txtGardenArea" promptText="Bahçe alanı" prefWidth="240.0" visible="false" managed="false" />
                               
                               <HBox spacing="10.0" style="-fx-padding: 10 0 0 0;">
                                  <children>
-                                    <Button fx:id="btnAddBuilding" text="Ekle" onAction="#handleAddBuilding" prefWidth="70.0" />
-                                    <Button fx:id="btnUpdateBuilding" text="Güncelle" onAction="#handleUpdateBuilding" prefWidth="70.0" />
-                                    <Button fx:id="btnDeleteBuilding" text="Sil" onAction="#handleDeleteBuilding" prefWidth="70.0" />
+                                    <Button fx:id="btnAddBuilding" text="Ekle" onAction="#handleAddBuilding" prefWidth="75.0" />
+                                    <Button fx:id="btnUpdateBuilding" text="Güncelle" onAction="#handleUpdateBuilding" prefWidth="75.0" />
+                                    <Button fx:id="btnDeleteBuilding" text="Sil" onAction="#handleDeleteBuilding" prefWidth="75.0" />
                                  </children>
                               </HBox>
+                              
+                              <Button fx:id="btnClearBuilding" text="Formu Temizle" onAction="#handleClearBuildingForm" prefWidth="240.0" style="-fx-background-color: #f0f0f0;" />
                            </children>
                         </VBox>
                      </children>
@@ -74,10 +80,10 @@
             </Tab>
           <Tab text="Mülk Sahipleri">
                <content>
-                  <Pane prefHeight="542.0" prefWidth="786.0">
+                  <Pane prefHeight="542.0" prefWidth="886.0">
                      <children>
                         <!-- Sol taraf: Tablo -->
-                        <TableView fx:id="ownersTable" layoutX="14.0" layoutY="14.0" prefHeight="450.0" prefWidth="500.0">
+                        <TableView fx:id="ownersTable" layoutX="14.0" layoutY="14.0" prefHeight="500.0" prefWidth="500.0">
                           <columns>
                             <TableColumn fx:id="colOwnerFirstName" prefWidth="120.0" text="Ad" />
                             <TableColumn fx:id="colOwnerLastName" prefWidth="120.0" text="Soyad" />
@@ -89,7 +95,7 @@
                         <!-- Sağ taraf: Form -->
                         <VBox layoutX="530.0" layoutY="14.0" spacing="10.0" prefWidth="240.0">
                            <children>
-                              <Label text="Yeni Mülk Sahibi Ekle" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                              <Label text="Mülk Sahibi Yönetimi" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
                               
                               <Label text="Ad:" />
                               <TextField fx:id="txtOwnerFirstName" promptText="Ad giriniz" />
@@ -115,10 +121,10 @@
             </Tab>
           <Tab text="Müteahhitler">
                <content>
-                  <Pane prefHeight="542.0" prefWidth="786.0">
+                  <Pane prefHeight="542.0" prefWidth="886.0">
                      <children>
                         <!-- Sol taraf: Tablo -->
-                        <TableView fx:id="contractorsTable" layoutX="14.0" layoutY="14.0" prefHeight="450.0" prefWidth="500.0">
+                        <TableView fx:id="contractorsTable" layoutX="14.0" layoutY="14.0" prefHeight="500.0" prefWidth="500.0">
                           <columns>
                             <TableColumn fx:id="colContractorFirstName" prefWidth="100.0" text="Ad" />
                             <TableColumn fx:id="colContractorLastName" prefWidth="100.0" text="Soyad" />
@@ -130,7 +136,7 @@
                         <!-- Sağ taraf: Form -->
                         <VBox layoutX="530.0" layoutY="14.0" spacing="10.0" prefWidth="240.0">
                            <children>
-                              <Label text="Yeni Müteahhit Ekle" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                              <Label text="Müteahhit Yönetimi" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
                               
                               <Label text="Ad:" />
                               <TextField fx:id="txtContractorFirstName" promptText="Ad giriniz" />
