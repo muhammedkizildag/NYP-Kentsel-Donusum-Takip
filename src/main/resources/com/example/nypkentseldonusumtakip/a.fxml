@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.nypkentseldonusumtakip.Controller">
+   <children>
+      <TabPane layoutX="14.0" prefHeight="600.0" prefWidth="786.0" tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+          <Tab text="Binalar">
+               <content>
+                  <Pane prefHeight="542.0" prefWidth="786.0">
+                     <children>
+                        <!-- Sol taraf: Tablo -->
+                        <TableView fx:id="buildingsTable" layoutX="14.0" layoutY="14.0" prefHeight="450.0" prefWidth="500.0">
+                          <columns>
+                            <TableColumn fx:id="colType" prefWidth="80.0" text="Tür" />
+                            <TableColumn fx:id="colAddress" prefWidth="150.0" text="Adres" />
+                            <TableColumn fx:id="colOwner" prefWidth="100.0" text="Sahibi" />
+                            <TableColumn fx:id="colStatus" prefWidth="80.0" text="Durum" />
+                            <TableColumn fx:id="colCost" prefWidth="80.0" text="Maliyet" />
+                          </columns>
+                        </TableView>
+                        
+                        <!-- Sağ taraf: Form -->
+                        <VBox layoutX="530.0" layoutY="14.0" spacing="10.0" prefWidth="240.0">
+                           <children>
+                              <Label text="Yeni Bina Ekle" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                              
+                              <Label text="Bina Türü:" />
+                              <ComboBox fx:id="cmbBuildingType" promptText="Seçiniz" prefWidth="200.0" />
+                              
+                              <Label text="Adres:" />
+                              <TextField fx:id="txtBuildingAddress" promptText="Adres giriniz" />
+                              
+                              <Label text="Mülk Sahibi:" />
+                              <ComboBox fx:id="cmbBuildingOwner" promptText="Seçiniz" prefWidth="200.0" />
+                              
+                              <Label text="Risk Durumu:" />
+                              <ComboBox fx:id="cmbRiskStatus" promptText="Seçiniz" prefWidth="200.0" />
+                              
+                              <!-- Apartman için -->
+                              <Label fx:id="lblFloors" text="Kat Sayısı:" />
+                              <TextField fx:id="txtFloors" promptText="Kat sayısı" />
+                              
+                              <Label fx:id="lblUnits" text="Daire Sayısı:" />
+                              <TextField fx:id="txtUnits" promptText="Daire sayısı" />
+                              
+                              <!-- Müstakil için -->
+                              <Label fx:id="lblGardenArea" text="Bahçe Alanı (m²):" visible="false" managed="false" />
+                              <TextField fx:id="txtGardenArea" promptText="Bahçe alanı" visible="false" managed="false" />
+                              
+                              <HBox spacing="10.0" style="-fx-padding: 10 0 0 0;">
+                                 <children>
+                                    <Button fx:id="btnAddBuilding" text="Ekle" onAction="#handleAddBuilding" prefWidth="70.0" />
+                                    <Button fx:id="btnUpdateBuilding" text="Güncelle" onAction="#handleUpdateBuilding" prefWidth="70.0" />
+                                    <Button fx:id="btnDeleteBuilding" text="Sil" onAction="#handleDeleteBuilding" prefWidth="70.0" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </Pane>
+               </content>
+            </Tab>
+          <Tab text="Mülk Sahipleri">
+               <content>
+                  <Pane prefHeight="542.0" prefWidth="786.0">
+                     <children>
+                        <!-- Sol taraf: Tablo -->
+                        <TableView fx:id="ownersTable" layoutX="14.0" layoutY="14.0" prefHeight="450.0" prefWidth="500.0">
+                          <columns>
+                            <TableColumn fx:id="colOwnerFirstName" prefWidth="120.0" text="Ad" />
+                            <TableColumn fx:id="colOwnerLastName" prefWidth="120.0" text="Soyad" />
+                            <TableColumn fx:id="colOwnerPhone" prefWidth="130.0" text="Telefon" />
+                            <TableColumn fx:id="colOwnerBuildingCount" prefWidth="120.0" text="Bina Sayısı" />
+                          </columns>
+                        </TableView>
+                        
+                        <!-- Sağ taraf: Form -->
+                        <VBox layoutX="530.0" layoutY="14.0" spacing="10.0" prefWidth="240.0">
+                           <children>
+                              <Label text="Yeni Mülk Sahibi Ekle" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                              
+                              <Label text="Ad:" />
+                              <TextField fx:id="txtOwnerFirstName" promptText="Ad giriniz" />
+                              
+                              <Label text="Soyad:" />
+                              <TextField fx:id="txtOwnerLastName" promptText="Soyad giriniz" />
+                              
+                              <Label text="Telefon:" />
+                              <TextField fx:id="txtOwnerPhone" promptText="05XX XXX XX XX" />
+                              
+                              <HBox spacing="10.0" style="-fx-padding: 10 0 0 0;">
+                                 <children>
+                                    <Button fx:id="btnAddOwner" text="Ekle" onAction="#handleAddOwner" prefWidth="70.0" />
+                                    <Button fx:id="btnUpdateOwner" text="Güncelle" onAction="#handleUpdateOwner" prefWidth="70.0" />
+                                    <Button fx:id="btnDeleteOwner" text="Sil" onAction="#handleDeleteOwner" prefWidth="70.0" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </Pane>
+               </content>
+            </Tab>
+          <Tab text="Müteahhitler">
+               <content>
+                  <Pane prefHeight="542.0" prefWidth="786.0">
+                     <children>
+                        <!-- Sol taraf: Tablo -->
+                        <TableView fx:id="contractorsTable" layoutX="14.0" layoutY="14.0" prefHeight="450.0" prefWidth="500.0">
+                          <columns>
+                            <TableColumn fx:id="colContractorFirstName" prefWidth="100.0" text="Ad" />
+                            <TableColumn fx:id="colContractorLastName" prefWidth="100.0" text="Soyad" />
+                            <TableColumn fx:id="colContractorPhone" prefWidth="130.0" text="Telefon" />
+                            <TableColumn fx:id="colContractorCompany" prefWidth="160.0" text="Şirket Adı" />
+                          </columns>
+                        </TableView>
+                        
+                        <!-- Sağ taraf: Form -->
+                        <VBox layoutX="530.0" layoutY="14.0" spacing="10.0" prefWidth="240.0">
+                           <children>
+                              <Label text="Yeni Müteahhit Ekle" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                              
+                              <Label text="Ad:" />
+                              <TextField fx:id="txtContractorFirstName" promptText="Ad giriniz" />
+                              
+                              <Label text="Soyad:" />
+                              <TextField fx:id="txtContractorLastName" promptText="Soyad giriniz" />
+                              
+                              <Label text="Telefon:" />
+                              <TextField fx:id="txtContractorPhone" promptText="05XX XXX XX XX" />
+                              
+                              <Label text="Şirket Adı:" />
+                              <TextField fx:id="txtContractorCompany" promptText="Şirket adı giriniz" />
+                              
+                              <HBox spacing="10.0" style="-fx-padding: 10 0 0 0;">
+                                 <children>
+                                    <Button fx:id="btnAddContractor" text="Ekle" onAction="#handleAddContractor" prefWidth="70.0" />
+                                    <Button fx:id="btnUpdateContractor" text="Güncelle" onAction="#handleUpdateContractor" prefWidth="70.0" />
+                                    <Button fx:id="btnDeleteContractor" text="Sil" onAction="#handleDeleteContractor" prefWidth="70.0" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </Pane>
+               </content>
+            </Tab>
+        </tabs>
+      </TabPane>
+   </children>
+</Pane>
