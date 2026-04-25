@@ -68,7 +68,6 @@ public abstract class Building {
         return contractor != null ? contractor.getCompanyName() : "Atanmamış";
     }
 
-    // Listede güzel görünsün diye toString metodunu düzenleyelim
     @Override
     public String toString() {
         // Sahibin adını çekmek için nesne üzerinden gidiyoruz
